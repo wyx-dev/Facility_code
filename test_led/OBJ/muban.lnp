@@ -1,0 +1,12 @@
+--cpu Cortex-M3
+"..\obj\main.o"
+"..\obj\delay.o"
+"..\obj\sys.o"
+"..\obj\usart.o"
+"..\obj\led.o"
+"..\obj\startup_stm32f10x_md.o"
+"..\obj\system_stm32f10x.o"
+--strict --scatter "..\OBJ\muban.sct"
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "..\OBJ\muban.map" -o ..\OBJ\muban.axf
