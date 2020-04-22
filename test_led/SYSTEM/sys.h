@@ -1,6 +1,6 @@
 #ifndef __SYS_H
 #define __SYS_H	  
-#include <stm32f10x.h>   
+#include <stm32f10x.h>
 //V1.4修改说明
 //把NVIC KO了,没有使用任何库文件!
 //加入了JTAG_Set函数
@@ -107,7 +107,6 @@ void INTX_ENABLE(void);	//开启所有中断
 void MSR_MSP(u32 addr);	//设置堆栈地址
 
 #endif
-
 
 
 

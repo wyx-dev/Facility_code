@@ -4,6 +4,7 @@
 "..\obj\sys.o"
 "..\obj\usart.o"
 "..\obj\led.o"
+"..\obj\seg.o"
 "..\obj\startup_stm32f10x_md.o"
 "..\obj\system_stm32f10x.o"
 --strict --scatter "..\OBJ\muban.sct"

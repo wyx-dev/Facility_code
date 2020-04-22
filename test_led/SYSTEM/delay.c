@@ -219,7 +219,19 @@ void delay_ms(u16 nms)
 } 
 #endif 
 
-
+/*
+（仿真时用）
+自定义软件延迟函数，由于仿真时系统延时不可用。所以用此延时
+*/
+void delay_diy(u16 nms)
+{
+	unsigned int i = 0;
+	for(; nms != 0; nms--)
+	{
+		for(i = 0; i<124 ; ++i)
+		{;}
+	}
+}
 
 
 
