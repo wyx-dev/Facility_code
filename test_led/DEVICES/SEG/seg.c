@@ -1,4 +1,5 @@
 #include "seg.h"
+#include "math.h"
 void segInit(void)
 {
 	RCC->APB2ENR|=1<<2;    //使能PORTA时钟	   	 
@@ -20,6 +21,34 @@ unsigned char SEG_0F[] =
 
 /*数码管显示函数*/
 void seg4Display(float temp)
+{
+	unsigned char * pTableSeg; //查表指针
+	unsigned char data;
+	unsigned char seg_i = 0;
+	
+	int integer = (int )(temp*10);
+	//显示
+	for(seg_i = 4; seg_i >0; --seg_i)
+	{
+		//寻找显示数据
+		pTableSeg = SEG_0F + (int)((int)(integer/pow(10,(4-seg_i))) % 10);
+		data = *pTableSeg;
+		if(seg_i == 3)
+			data &= ~(1<<7);
+		
+		
+		//输出到数码管
+		segOut(data);
+		//片选
+		segOut(1<<(seg_i - 1));
+		
+		ST_CP = 0;
+		ST_CP = 1;
+	}
+}
+
+/*数码管测试函数*/
+void seg4Test(void)
 {
 	unsigned char * pTableSeg; //查表指针
 	unsigned char data;

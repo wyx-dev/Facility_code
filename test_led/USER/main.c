@@ -20,7 +20,6 @@ int main(void)
 	delay_init(72);	     	//延时初始化
 	LED_Init();		  	 	//初始化与LED连接的硬件接口    
 	segInit();					//初始化seg所用到的三个IO口
-	
 	while(1)
 	{
 //		PAout(8) = 1;
@@ -29,7 +28,8 @@ int main(void)
 //		PAout(8) = 0;
 //		PAout(9) = 0;
 //		delay(1000);
-		seg4Display(1);
+		//seg4Test();
+		seg4Display(1.40900);
 	}	 
 }
 

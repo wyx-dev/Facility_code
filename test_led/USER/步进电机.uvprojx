@@ -365,7 +365,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\SYSTEM;..\DEVICES\LED;..\DEVICES\MOTOR;..\DEVICES\TIMER;..\DEVICES\EXTI;..\DEVICES\PHOTOELECTRIC;..\USER;..\DEVICES\KEY;..\DEVICES\SERVO;..\DEVICES\HCSR-04;..\DEVICES\USART3</IncludePath>
+              <IncludePath>..\SYSTEM;..\DEVICES\LED;..\DEVICES\MOTOR;..\DEVICES\TIMER;..\DEVICES\EXTI;..\DEVICES\PHOTOELECTRIC;..\USER;..\DEVICES\KEY;..\DEVICES\SERVO;..\DEVICES\HCSR-04;..\DEVICES\USART3;..\DEVICES\SEG</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -442,6 +442,11 @@
               <FileName>led.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\DEVICES\LED\led.c</FilePath>
+            </File>
+            <File>
+              <FileName>seg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\DEVICES\SEG\seg.c</FilePath>
             </File>
           </Files>
         </Group>
