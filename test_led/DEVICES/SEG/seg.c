@@ -20,18 +20,18 @@ unsigned char SEG_0F[] =
 };
 
 /*数码管显示函数*/
-void seg4Display(float temp)
+void seg4Display(int temp)
 {
 	unsigned char * pTableSeg; //查表指针
 	unsigned char data;
 	unsigned char seg_i = 0;
 	
-	int integer = (int )(temp*10);
+	//int integer = (int )(temp*10);
 	//显示
 	for(seg_i = 4; seg_i >0; --seg_i)
 	{
 		//寻找显示数据
-		pTableSeg = SEG_0F + (int)((int)(integer/pow(10,(4-seg_i))) % 10);
+		pTableSeg = SEG_0F + (int)((int)(temp/pow(10,(4-seg_i))) % 10);
 		data = *pTableSeg;
 		if(seg_i == 3)
 			data &= ~(1<<7);
@@ -40,7 +40,7 @@ void seg4Display(float temp)
 		//输出到数码管
 		segOut(data);
 		//片选
-		segOut(1<<(seg_i - 1));
+		segOut(1<<(4 - seg_i));
 		
 		ST_CP = 0;
 		ST_CP = 1;

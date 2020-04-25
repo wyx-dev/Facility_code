@@ -108,7 +108,11 @@ void MSR_MSP(u32 addr);	//…Ë÷√∂—’ªµÿ÷∑
 
 #endif
 
+/* wyx_diy */
+extern void (*delay)(u16);
 
+
+/* wyx_diy */
 
 
 
