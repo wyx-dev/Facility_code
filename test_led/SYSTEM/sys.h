@@ -110,7 +110,8 @@ void MSR_MSP(u32 addr);	//…Ë÷√∂—’ªµÿ÷∑
 
 /* wyx_diy */
 extern void (*delay)(u16);
-
+extern int currrentTemp;
+extern u8 set;
 
 /* wyx_diy */
 

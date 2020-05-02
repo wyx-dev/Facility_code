@@ -1,6 +1,8 @@
 #include "ds18b20.h"
 #include "usart.h"
 #include "delay.h"
+#include "timer.h"
+
 u8 signFlag = 1;			//温度正负标志位
 
 /* 控制时序延时函数 */
@@ -142,6 +144,8 @@ int readTemp(void)
 	u8 temp;
 	u8 TL,TH;
 	int tem;
+	/* 原子操作 */
+	SEG_OFF;//关中断，此一系列操作不能被中断打断
 	ds18b20Start ();                    // ds1820 start convert
 	ds18b20Reset();
 	ds18b20Check();	 
@@ -149,7 +153,8 @@ int readTemp(void)
 	writeOneChar(0xbe);// convert	    
 	TL = readOneChar(); // LSB   
 	TH = readOneChar(); // MSB  
-	
+	SEG_ON;//开中断，此一系列操作不能被中断打断
+	/* 原子操作 */
 	if(TH > 7)
 	{
 		//温度为负，取补码
@@ -164,3 +169,17 @@ int readTemp(void)
 	if(temp)return tem; //返回温度值
 	else return -tem;    
 }
+
+int readTemp_bak(void)
+{
+	int sum = 0;
+	unsigned char i = 0;
+	for(i = 0; i < 1 ; ++i)
+	{
+		sum += readTemp();
+	}
+	return (sum/1);
+}
+
+
+

@@ -7,6 +7,8 @@
 "..\obj\seg.o"
 "..\obj\ds18b20.o"
 "..\obj\key.o"
+"..\obj\beep.o"
+"..\obj\timer.o"
 "..\obj\startup_stm32f10x_md.o"
 "..\obj\system_stm32f10x.o"
 --strict --scatter "..\OBJ\muban.sct"
