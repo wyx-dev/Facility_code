@@ -39,7 +39,7 @@ u8 keyScan(u8 mode)
 }
 
 /* 中断按键初始化函数 */
-void EXTI_Init(void)
+void extiInit(void)
 {
 	RCC->APB2ENR|=1<<3;     		//使能PORTB时钟
 	GPIOB->CRL&=0X0FFFFFFF;			//PB 7设置成输入

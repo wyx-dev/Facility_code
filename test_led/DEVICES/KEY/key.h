@@ -8,5 +8,5 @@
 
 void keyInit(void);		//IO初始化
 u8 keyScan(u8 mode);		//按键扫描函数
-void EXTI_Init(void);
+void extiInit(void);
 #endif

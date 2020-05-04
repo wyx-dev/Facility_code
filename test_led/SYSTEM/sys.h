@@ -108,11 +108,11 @@ void MSR_MSP(u32 addr);	//设置堆栈地址
 
 #endif
 
-/* wyx_diy */
+/* wyx_diy---引用全局变量 */
 extern void (*delay)(u16);
 extern int currrentTemp;
 extern u8 set;
-
+extern int count;
 /* wyx_diy */
 
 

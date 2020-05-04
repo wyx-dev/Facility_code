@@ -91,6 +91,9 @@ void TIM1_UP_IRQHandler(void)
 		}
 		else
 			seg_i --;
+		
+		//count计数器加一
+		count ++;
 	}
 	TIM1->SR&=~(1<<0);//清除中断标志位 	    
 }

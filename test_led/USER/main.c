@@ -15,6 +15,7 @@ u8 button = 0;
 int targetTemp = 300;
 int currrentTemp = 0;
 u8 set = 0;
+int count = 0;
 
 /* 函数定义区 */
 void setTargetTemp(void);
@@ -27,7 +28,6 @@ void (*delay)(u16);
 
 int main(void)
 {
-	int count = 0;
 	delay = delay_ms;
 	#if FLAG_PROTUES
 	delay = delay_diy;
@@ -38,12 +38,13 @@ int main(void)
 	uart_init(72, 9600);
 	ledInit();		  	 		//初始化与LED连接的硬件接口    
 	segInit();						//初始化seg所用到的三个IO口
-	ds18b20Init();			//初始化ds18b20所用到的1个IO口
+	ds18b20Init();			  //初始化ds18b20所用到的1个IO口
 	keyInit();						//扫描按键IO初始化
-	EXTI_Init();					//中断按键初始化
+	extiInit();						//中断按键初始化
 	beepInit();						//初始化蜂鸣器
-	timerInit(50,3599);	//10khz 计数到50
+	timerInit(50,3599);		//10khz 计数到50
 	SEG_ON;
+
 	while(1)
 	{
 //		if(PBout(7))
@@ -51,7 +52,7 @@ int main(void)
 //		//delay(1000);
 //		else
 //			PAout(8) = 1;
-		//delay(1000);
+//		delay(1000);
 /* 数码管测试 */
 //		seg4Test();
 //		seg4Display(102);
@@ -73,17 +74,20 @@ int main(void)
 			setTargetTemp();
 
 		//读取温度
-		if((count % 60000) == 0)
+		if((count % 3) == 0)
 		{
 			currrentTemp = readTemp();
+			
 		}
-		count ++;
+
 		//超过目标温度10°就报警
 		if(currrentTemp > (targetTemp + 100))
 		{
 			if(count % 100000 == 0)
-				PAout(8) = !PAout(8);
+				BEEP = !BEEP;
 		}
+		
+		
 //		else
 //		{
 //			delay()
@@ -142,4 +146,11 @@ void setTargetTemp(void)
 /*
 汇编：队长：黄超 队员：王宇祥、刘定远、崔宇航、王晨
 FPGA：队长：黄超 队员：孙逍遥、王宇祥、刘定远、江时盼
+while(1)
+{
+	PAout(0) = 0;
+	delay_ms(1000);
+	PAout(0) = 1;
+	delay_ms(1000);
+}
 */

@@ -144,8 +144,9 @@ int readTemp(void)
 	u8 temp;
 	u8 TL,TH;
 	int tem;
+
 	/* 原子操作 */
-	SEG_OFF;//关中断，此一系列操作不能被中断打断
+	//SEG_OFF;//关中断，此一系列操作不能被中断打断
 	ds18b20Start ();                    // ds1820 start convert
 	ds18b20Reset();
 	ds18b20Check();	 
@@ -153,18 +154,21 @@ int readTemp(void)
 	writeOneChar(0xbe);// convert	    
 	TL = readOneChar(); // LSB   
 	TH = readOneChar(); // MSB  
-	SEG_ON;//开中断，此一系列操作不能被中断打断
+	//SEG_ON;//开中断，此一系列操作不能被中断打断
 	/* 原子操作 */
+
 	if(TH > 7)
 	{
 		//温度为负，取补码
 		TH = ~TH;
 		TL = ~TL; 
 		temp = 0;//温度为负  
-	}else temp = 1;//温度为正	  	  
-	tem = TH; //获得高八位
-	tem <<= 8;    
-	tem += TL;//获得底八位
+	}
+	else 
+		temp = 1;//温度为正	  	  
+	tem = TH;  //获得高八位
+	tem <<= 8;
+	tem += TL; //获得底八位
 	tem = (int)((float)tem*0.625);//转换 0.625 = 5 / 8   除以16乘10
 	if(temp)return tem; //返回温度值
 	else return -tem;    
