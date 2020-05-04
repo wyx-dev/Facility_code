@@ -12,10 +12,11 @@
 u8 integer = 0;				//温度整数
 u8 decimal = 0;				//温度小数
 u8 button = 0;
-int targetTemp = 300;
-int currrentTemp = 0;
+int targetTemp = 100;
+int currentTemp = 0;
 u8 set = 0;
-int count = 0;
+unsigned int time_count = 0;
+int Kp = 72;
 
 /* 函数定义区 */
 void setTargetTemp(void);
@@ -42,7 +43,8 @@ int main(void)
 	keyInit();						//扫描按键IO初始化
 	extiInit();						//中断按键初始化
 	beepInit();						//初始化蜂鸣器
-	timerInit(50,3599);		//10khz 计数到50
+	tim3Init(50,7199);		//10khz 计数到50
+	tim1PwmInit(7199,0);	//10khz 计数到50
 	SEG_ON;
 
 	while(1)
@@ -57,8 +59,8 @@ int main(void)
 //		seg4Test();
 //		seg4Display(102);
 /* 读取温度测试 */
-//		currrentTemp = readTemp();
-//		seg4Display(currrentTemp);
+//		currentTemp = readTemp();
+//		seg4Display(currentTemp);
 /* 按键测试 */
 //		button = keyScan(0);
 //		if(button != 0)
@@ -68,26 +70,55 @@ int main(void)
 //		delay(500);
 //		BEEP_OFF;
 //		delay(500);
-
+/* 定时器和PWM测试(PWM_VAL越大，输出电压越小) */
+//		PWM_VAL = 7000;
+//		delay(1000);
+//		PWM_VAL = 1000;
+//		delay(1000);
 /* 蜂鸣器 按键 温度 数码管联合测试 */
 		if(set == 1)
-			setTargetTemp();
-
-		//读取温度
-		if((count % 3) == 0)
 		{
-			currrentTemp = readTemp();
+			BEEP_OFF;
+			setTargetTemp();
+		}
+
+		//读取温度 并处理温度
+		if((time_count % 3) == 0)
+		{
+//			BEEP = !BEEP;
+//			LED0 = !LED0;
+			currentTemp = readTemp();
+
+			//当前温度处于目标温度正负0.5，停止加热。蜂鸣器响。
+			if((currentTemp > (targetTemp-5)) && ((currentTemp < (targetTemp+5))))
+			{
+				if((time_count % 100) == 0)
+				{
+					BEEP_ON;
+					delay(50);
+					BEEP_OFF;
+					delay(50);
+				}
+			}
 			
+			//小于目标温度，加热
+			if(currentTemp < (targetTemp-5))
+			{
+				PWM_VAL = 7200 - (targetTemp - currentTemp) * Kp;
+			}
+			
+			//大于目标温度，停止加热
+			else if(currentTemp < (targetTemp+5))
+			{
+				PWM_VAL = 7199;
+			}
 		}
 
 		//超过目标温度10°就报警
-		if(currrentTemp > (targetTemp + 100))
+		if(currentTemp > (targetTemp + 100))
 		{
-			if(count % 100000 == 0)
-				BEEP = !BEEP;
+			BEEP_ON;
 		}
-		
-		
 //		else
 //		{
 //			delay()
@@ -104,8 +135,8 @@ int main(void)
 void setTargetTemp(void)
 {
 	u8 key = 0;
-	SEG_OFF;//关闭定时器中断显示，函数内调用显示
-	BEEP_OFF; 
+	//SEG_OFF;//关闭定时器中断显示，函数内调用显示
+	//BEEP_OFF; 
 	//指示灯 指示在设置中
 	LED1 = 0;
 	while(1)
@@ -115,28 +146,36 @@ void setTargetTemp(void)
 		while(key == 0)
 		{
 			//printf("target:%d\r\n",targetTemp);
-			seg4Display(targetTemp);
-			key = keyScan(1);
+			//seg4Display(targetTemp);
+			
+			//set中断按下改变set变量值，退出设置模式，清除相关初始化变量
 			if(set == 0)
 			{
-				SEG_ON;
+				//SEG_ON;
 				LED1 = 1;
 				set = 0;//初始化set变量
 				return;
 			}
+			
+			//显示目标温度，便于设置
+			currentTemp = targetTemp;
+			
+			//查询式 扫描按键（参数1代表支持连按）
+			key = keyScan(1);
 		}
-		
-		//判断按的那个按键
+
+		//判断按的那个按键，加或减目标温度
 		if(key == ADD)
 		{
-			if(targetTemp < 65535)
+			if(targetTemp < 65535)//限幅
 				targetTemp += 5;
 		}
 		else if(key == SUB)
 		{
-			if(targetTemp > 0)
+			if(targetTemp > 0)		//限幅
 				targetTemp -= 5;
 		}
+
 		//防误触
 		delay(200);
 	}

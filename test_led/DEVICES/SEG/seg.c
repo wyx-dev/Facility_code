@@ -53,7 +53,7 @@ void seg4Display(int temp)
 
 u8 seg_i = 4;
 /* 5ms定时器中断 */
-void TIM1_UP_IRQHandler(void)
+void TIM3_IRQHandler(void)
 {
 	unsigned char * pTableSeg; //查表指针
 	unsigned char data;
@@ -72,7 +72,7 @@ void TIM1_UP_IRQHandler(void)
 //			PCout(13) = !PCout(13);
 //			currrentTemp = readTemp();
 //		}
-		pTableSeg = SEG_0F + (int)((int)(currrentTemp/pow(10,(4-seg_i))) % 10);
+		pTableSeg = SEG_0F + (int)((int)(currentTemp/pow(10,(4-seg_i))) % 10);
 		data = *pTableSeg;
 		if(seg_i == 3)
 			data &= ~(1<<7);
@@ -93,9 +93,9 @@ void TIM1_UP_IRQHandler(void)
 			seg_i --;
 		
 		//count计数器加一
-		count ++;
+		time_count ++;
 	}
-	TIM1->SR&=~(1<<0);//清除中断标志位 	    
+	TIM3->SR&=~(1<<0);//清除中断标志位 	    
 }
 
 
