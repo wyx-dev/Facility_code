@@ -12,8 +12,9 @@
 u8 integer = 0;				//温度整数
 u8 decimal = 0;				//温度小数
 u8 button = 0;
-int targetTemp = 100;
+int targetTemp = 300;
 int currentTemp = 0;
+int alarmTemp = 400;
 u8 set = 0;
 unsigned int time_count = 0;
 int Kp = 72;
@@ -50,7 +51,7 @@ int main(void)
 	while(1)
 	{
 //		if(PBout(7))
-//			PAout(8) = 0;
+//			PAout(3) = 1;
 //		//delay(1000);
 //		else
 //			PAout(8) = 1;
@@ -79,6 +80,7 @@ int main(void)
 		if(set == 1)
 		{
 			BEEP_OFF;
+			PWM_VAL = 7199;
 			setTargetTemp();
 		}
 
@@ -100,13 +102,13 @@ int main(void)
 					delay(50);
 				}
 			}
-			
+
 			//小于目标温度，加热
 			if(currentTemp < (targetTemp-5))
 			{
 				PWM_VAL = 7200 - (targetTemp - currentTemp) * Kp;
 			}
-			
+
 			//大于目标温度，停止加热
 			else if(currentTemp < (targetTemp+5))
 			{
@@ -114,15 +116,11 @@ int main(void)
 			}
 		}
 
-		//超过目标温度10°就报警
-		if(currentTemp > (targetTemp + 100))
+		//超过报警温度就报警
+		if(currentTemp > alarmTemp)
 		{
 			BEEP_ON;
 		}
-//		else
-//		{
-//			delay()
-//		}
 //		PAout(3) = 1;
 //		delay(1000);
 //		PAout(3) = 0;
@@ -131,35 +129,57 @@ int main(void)
 	}
 }
 
-/* 设置目标温度 */
+/* 
+		设置目标/报警温度
+		双击set设置报警温度
+		单机set设置目标温度
+*/
 void setTargetTemp(void)
 {
 	u8 key = 0;
-	//SEG_OFF;//关闭定时器中断显示，函数内调用显示
-	//BEEP_OFF; 
-	//指示灯 指示在设置中
-	LED1 = 0;
+	int* setTemp;
+	u8 flagSetType = 1;	//1表示目标温度，0表示报警温度
+	
+	//如果在500ms内连按set两次，就会进入设置报警温度
+	delay_diy(5000);
+	
+	if(set == 0)
+	{
+		setTemp = &alarmTemp;
+		set = 1;
+		flagSetType = 0;
+	}
+	//否则设置目标温度
+	else
+	{
+		setTemp = &targetTemp;
+		flagSetType = 1;
+		LED1 = 0;
+	}
+
 	while(1)
 	{
 		key = 0;
 		//等待按键按下
 		while(key == 0)
 		{
-			//printf("target:%d\r\n",targetTemp);
-			//seg4Display(targetTemp);
+			//显示目标温度，便于设置
+			currentTemp = *setTemp;
 			
+			//如果设置的是报警模式，指示灯为闪烁。
+			if(flagSetType == 0)
+				LED1 = !LED1;
+			delay(200);
 			//set中断按下改变set变量值，退出设置模式，清除相关初始化变量
 			if(set == 0)
 			{
 				//SEG_ON;
 				LED1 = 1;
 				set = 0;//初始化set变量
+//				alarmTemp = targetTemp + 100;//默认报警温度为目标温度+10°。
 				return;
 			}
-			
-			//显示目标温度，便于设置
-			currentTemp = targetTemp;
-			
+
 			//查询式 扫描按键（参数1代表支持连按）
 			key = keyScan(1);
 		}
@@ -167,17 +187,17 @@ void setTargetTemp(void)
 		//判断按的那个按键，加或减目标温度
 		if(key == ADD)
 		{
-			if(targetTemp < 65535)//限幅
-				targetTemp += 5;
+			if(*setTemp < 65535)//限幅
+				*setTemp += 5;
 		}
 		else if(key == SUB)
 		{
-			if(targetTemp > 0)		//限幅
-				targetTemp -= 5;
+			if(*setTemp > 0)		//限幅
+				*setTemp -= 5;
 		}
 
 		//防误触
-		delay(200);
+		//delay(200);
 	}
 
 }
