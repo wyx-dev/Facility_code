@@ -92,7 +92,7 @@ void TIM3_IRQHandler(void)
 		else
 			seg_i --;
 		
-		//count计数器加一
+		//count计数器加一 为主函数提供精准延时
 		time_count ++;
 	}
 	TIM3->SR&=~(1<<0);//清除中断标志位 	    

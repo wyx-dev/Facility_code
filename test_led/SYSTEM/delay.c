@@ -228,7 +228,7 @@ void delay_diy(u16 nms)
 	unsigned int i = 0;
 	for(; nms != 0; nms--)
 	{
-		for(i = 0; i<124 ; ++i)
+		for(i = 0; i<1240 ; ++i)
 		{;}
 	}
 }
