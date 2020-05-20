@@ -3,38 +3,43 @@
 <pre>
 <h1>礦ision Build Log</h1>
 <h2>Tool Versions:</h2>
-IDE-Version: μVision V5.14.0.0
-Copyright (C) 2015 ARM Ltd and ARM Germany GmbH. All rights reserved.
+IDE-Version: μVision V5.21.1.0
+Copyright (C) 2016 ARM Ltd and ARM Germany GmbH. All rights reserved.
 License Information: wyx WYX, wyxwww, LIC=D0D56-DZJAB-TFBI4-FR8K3-57IGN-4HRAF
  
 Tool Versions:
-Toolchain:       MDK-ARM Standard  Version: 5.14.0.0
+Toolchain:       MDK-ARM Plus  Version: 5.21a
 Toolchain Path:  E:\usedSoftware\keil\ARM\ARMCC\Bin
-C Compiler:      Armcc.exe V5.05 update 1 (build 106)
-Assembler:       Armasm.exe V5.05 update 1 (build 106)
-Linker/Locator:  ArmLink.exe V5.05 update 1 (build 106)
-Library Manager: ArmAr.exe V5.05 update 1 (build 106)
-Hex Converter:   FromElf.exe V5.05 update 1 (build 106)
-CPU DLL:         SARMCM3.DLL V5.14.0.0
-Dialog DLL:      DCM.DLL V1.13.1.0
-Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V2.0.14.0_KEIL
-Dialog DLL:      TCM.DLL V1.14.4.0
+C Compiler:      Armcc.exe V5.06 update 3 (build 300)
+Assembler:       Armasm.exe V5.06 update 3 (build 300)
+Linker/Locator:  ArmLink.exe V5.06 update 3 (build 300)
+Library Manager: ArmAr.exe V5.06 update 3 (build 300)
+Hex Converter:   FromElf.exe V5.06 update 3 (build 300)
+CPU DLL:         SARMCM3.DLL V5.21a
+Dialog DLL:      DCM.DLL V1.13.8.0
+Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V2.0.18.0
+Dialog DLL:      TCM.DLL V1.14.14.0
  
 <h2>Project:</h2>
 C:\Users\wyx\Desktop\Facility\source\Facility_code\test_led\USER\步进电机.uvprojx
-Project File Date:  05/04/2020
+Project File Date:  05/19/2020
 
 <h2>Output:</h2>
+*** Using Compiler 'V5.06 update 3 (build 300)', folder: 'E:\usedSoftware\keil\ARM\ARMCC\Bin'
 Build target 'project'
+compiling main.c...
+linking...
+Program Size: Code=18654 RO-data=930 RW-data=60 ZI-data=2268  
+FromELF: creating hex file...
 "..\OBJ\muban.axf" - 0 Error(s), 0 Warning(s).
 
 <h2>Software Packages used:</h2>
 
 Package Vendor: ARM
-                http://www.keil.com/pack/ARM.CMSIS.4.2.0.pack
-                ARM::CMSIS:CORE:3.40.0
+                http://www.keil.com/pack/ARM.CMSIS.4.5.0.pack
+                ARM::CMSIS:CORE:4.3.0
                 CMSIS (Cortex Microcontroller Software Interface Standard)
-   * Component: CORE Version: 3.40.0
+   * Component: CORE Version: 4.3.0
 
 Package Vendor: Keil
                 http://www.keil.com/pack/Keil.STM32F1xx_DFP.1.0.5.pack
@@ -45,19 +50,19 @@ Package Vendor: Keil
 <h2>Collection of Component include folders:</h2>
   C:\Users\wyx\Desktop\Facility\source\Facility_code\test_led\USER\RTE
   C:\Users\wyx\Desktop\Facility\source\Facility_code\test_led\USER\RTE\Device\STM32F103C8
-  E:\usedSoftware\keil\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include
-  E:\usedSoftware\keil\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include
+  E:\usedSoftware\keil5.21\ARM\CMSIS\4.5.0\CMSIS\Include
+  E:\usedSoftware\keil5.21\Keil\STM32F1xx_DFP\1.0.5\Device\Include
 
 <h2>Collection of Component Files used:</h2>
 
-   * Component: ARM::CMSIS:CORE:3.40.0
-      Source file:   CMSIS\UserCodeTemplates\ARM\ITM_Retarget.c
+   * Component: ARM::CMSIS:CORE:4.3.0
 
    * Component: Keil::Device:Startup:1.0.0
-      Include file:  RTE_Driver\Config\RTE_Device.h
+      Source file:   Device\Source\ARM\STM32F1xx_OPT.s
       Source file:   Device\Source\ARM\startup_stm32f10x_md.s
       Source file:   Device\Source\system_stm32f10x.c
-      Source file:   Device\Source\ARM\STM32F1xx_OPT.s
+      Include file:  RTE_Driver\Config\RTE_Device.h
+Build Time Elapsed:  00:00:01
 </pre>
 </body>
 </html>

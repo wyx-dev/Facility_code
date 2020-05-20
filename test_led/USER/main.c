@@ -8,15 +8,14 @@
 #include "beep.h"
 #include "timer.h"
 #include "string.h"
+#include "bt04.h"
+#include "usart2.h"
 
 /* 全局变量定义区 */
-u8 integer = 0;				//温度整数
-u8 decimal = 0;				//温度小数
-u8 button = 0;
-int targetTemp = 300;
+int targetTemp = 280;
 int currentTemp = 0;
 int alarmTemp = 400;
-u8 set = 0;
+u8 set = 0, control_bluetooth = 0;
 unsigned int time_count = 0;
 int Kp = 72;
 struct PID {
@@ -61,36 +60,48 @@ int main(void)
 	keyInit();						//扫描按键IO初始化
 	extiInit();						//中断按键初始化
 	beepInit();						//初始化蜂鸣器
+	while(BT04_Init()) 		//初始化BT04模块  
+	{
+		//出错指示灯闪烁
+		LED0 = !LED0;
+		delay_ms(500);
+	}
 	tim3Init(50,7199);		//10khz 计数到50
 	tim1PwmInit(7199,0);	//10khz
 	PIDInit(&spid);
 	SEG_ON;
 
-	spid.proportion = 0;
+	spid.proportion = 36;
 	spid.integral = 0;
 	spid.derivative = 0;
 
 	while(1)
 	{
-		/* 加入PID的系统 */
+//		PWM_CH4_VAL = 2;//30--7.26   10---7.19  5---7.14  3---7.05 1--0 2--0
+//		setPwm(7200,1);
+//		/* 加入PID的系统 */
 		if(set == 1)
 		{
 			BEEP_OFF;//关蜂鸣器
 			PWM_OFF;
 			setTargetTemp();
+			/* 蓝牙发送相关 */
+			u2_printf("A%.1f;%.1f\n",(float)targetTemp/10, (float)alarmTemp/10);
+			delay_ms(500);
+			u2_printf("BOFF");
+			/* ************ */
 		}
 
 		//读取温度 并处理温度
 		if((time_count % 3) == 0)
 		{
-			LED0 = !LED0;
+//			LED0 = !LED0;
 			currentTemp = readTemp();
 			alarmCheck(currentTemp);
 
 			//如果已到目标范围,则停止加热
 			if((currentTemp > (targetTemp-5)) && ((currentTemp < (targetTemp+5))))
 			{
-				PWM_OFF;
 				if((time_count % 100) == 0)
 				{
 					BEEP_ON;
@@ -101,18 +112,20 @@ int main(void)
 			}
 
 			//降温
-			else if(currentTemp < targetTemp)
+			else if(currentTemp > targetTemp)
 			{
+				setPwm(0,1);//关闭加热器
 				//降温
 				coldOut = coldDiff * 12; //300 ---3600
 				setPwm(coldOut ,0);
 			}
 			
 			//升温
-			else if(currentTemp > targetTemp)
+			else if(currentTemp < targetTemp)
 			{
-				spid.diff = currentTemp - targetTemp;
-				if(spid.diff > 100)
+				setPwm(0,0);//关闭风扇
+				spid.diff = targetTemp - currentTemp;
+				if(spid.diff > 0)
 					heatOut = spid.diff * spid.proportion;
 
 				//PID数据处理
@@ -160,10 +173,11 @@ u16 PID_calc(struct PID *pp)
 */
 void setTargetTemp(void)
 {
-	u8 key = 0;
+	
 	int* setTemp;
 	u8 flagSetType = 1;	//1表示目标温度，0表示报警温度
-
+	u8 control_key = 0;
+	
 	//如果在500ms内连按set两次，就会进入设置报警温度
 	delay_diy(5000);
 
@@ -183,9 +197,16 @@ void setTargetTemp(void)
 
 	while(1)
 	{
-		key = 0;
+		control_key = 0;
+		control_bluetooth = 0;
+		/* 蓝牙发送相关 */
+		if(flagSetType == 0)//零 报警值
+			u2_printf("BalarmTemp:%.1f",((float)*setTemp/10));
+		else				//否则 目标值
+			u2_printf("BtargetTemp:%.1f",((float)*setTemp/10));
+		/* ************ */
 		//等待按键按下
-		while(key == 0)
+		while((control_key == 0) && (control_bluetooth == 0))
 		{
 			//显示目标温度，便于设置
 			currentTemp = *setTemp;
@@ -200,21 +221,21 @@ void setTargetTemp(void)
 				//SEG_ON;
 				LED1 = 1;
 				set = 0;											//初始化set变量
-				alarmTemp = targetTemp + 100;	//默认报警温度为目标温度+10°。
+				//alarmTemp = targetTemp + 100;	//默认报警温度为目标温度+10°。此条语句加上会出现alarm温度设置完没作用的效果,谨记!!!
 				return;
 			}
 
 			//查询式 扫描按键（参数1代表支持连按）
-			key = keyScan(1);
+			control_key = keyScan(1);
 		}
 
 		//判断按的那个按键，加或减目标温度
-		if(key == ADD)
+		if((control_key == ADD) || (control_bluetooth == ADD))
 		{
 			if(*setTemp < 65535)//限幅
 				*setTemp += 5;
 		}
-		else if(key == SUB)
+		else if((control_key == SUB) || (control_bluetooth == SUB))
 		{
 			if(*setTemp > 0)		//限幅
 				*setTemp -= 5;

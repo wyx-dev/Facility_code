@@ -42,13 +42,13 @@ void tim1PwmInit(u16 arr,u16 psc)
 	TIM1->CR1|=0x01;    	//使能定时器1 										  
 }  
 
-
+//flag区分陶瓷加热片和电风扇. 1 为陶瓷加热片 0 电风扇
 void setPwm(int moto, u8 flag)
 {
 	int tmp = 0;
 
 	//区分陶瓷加热片和电风扇. 1 为陶瓷加热片 0 电风扇
-	(flag==1)? (tmp = 7199) : (tmp = 3599);
+	(flag==1)? (tmp = 7199) : (tmp = 30);
 	
 	//限幅
 	if(moto > tmp)

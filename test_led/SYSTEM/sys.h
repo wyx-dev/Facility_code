@@ -111,7 +111,7 @@ void MSR_MSP(u32 addr);	//设置堆栈地址
 /* wyx_diy---引用全局变量 */
 extern void (*delay)(u16);
 extern int currentTemp;
-extern u8 set;
+extern u8 set, control_bluetooth;
 extern unsigned int time_count;
 /* wyx_diy */
 

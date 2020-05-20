@@ -1,4 +1,5 @@
 --cpu Cortex-M3
+"..\obj\usart2.o"
 "..\obj\main.o"
 "..\obj\delay.o"
 "..\obj\sys.o"
@@ -9,6 +10,7 @@
 "..\obj\key.o"
 "..\obj\beep.o"
 "..\obj\timer.o"
+"..\obj\bt04.o"
 "..\obj\startup_stm32f10x_md.o"
 "..\obj\system_stm32f10x.o"
 --strict --scatter "..\OBJ\muban.sct"

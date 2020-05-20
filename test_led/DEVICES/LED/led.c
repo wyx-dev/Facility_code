@@ -7,8 +7,8 @@ void ledInit(void)
 	RCC->APB2ENR |= 1<<4;    //使能PORTC时钟	   
 	RCC->APB2ENR |= 1<<2;    //使能PORTA时钟	   	 
 	
-	GPIOA->CRL &= 0XFFFF0FFF;
-	GPIOA->CRL |= 0X00003000;//PA3推挽输出 
+	GPIOA->CRL &= 0XFFFFFF0F;
+	GPIOA->CRL |= 0X00000030;//PA3推挽输出 
 	
 	
 	GPIOC->CRH &= 0XFF0FFFFF;
