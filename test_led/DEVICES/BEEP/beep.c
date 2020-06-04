@@ -1,4 +1,4 @@
-#include "sys.h"   
+#include "sys.h"
 #include "beep.h"
 //初始化PA0为输出口.并使能这两个口的时钟
 //BEEP IO初始化
@@ -11,18 +11,3 @@ void beepInit(void)
 
   BEEP_OFF;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

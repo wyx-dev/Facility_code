@@ -59,20 +59,7 @@ void TIM3_IRQHandler(void)
 	unsigned char data;
 	if(TIM1->SR&0X0001)//溢出中断
 	{
-//		{
-		//里面大概20ms
-		//seg4Display(currrentTemp);
-		
-		//理论每过40 * 25 ms = 1s
-		//实际测试46 * ？ ms = 1s
-		//根据实际测试23/46（s）500ms读取一次温度 
-//		if(timCount == 23)
-//		{
-//			timCount = 0;
-//			PCout(13) = !PCout(13);
-//			currrentTemp = readTemp();
-//		}
-		pTableSeg = SEG_0F + (int)((int)(currentTemp/pow(10,(4-seg_i))) % 10);
+		pTableSeg = SEG_0F + (int)((int)(currentTemp/pow(10,(4-seg_i))) % 10);//在表里查指针
 		data = *pTableSeg;
 		if(seg_i == 3)
 			data &= ~(1<<7);
@@ -93,7 +80,10 @@ void TIM3_IRQHandler(void)
 			seg_i --;
 		
 		//count计数器加一 为主函数提供精准延时
-		time_count ++;
+		if((seg_i % 2) == 0)//5ms中断,此处为10ms加一
+			time_count ++;
+		if(time_count == 500)
+			time_count = 0;
 	}
 	TIM3->SR&=~(1<<0);//清除中断标志位 	    
 }

@@ -335,7 +335,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\SYSTEM;..\DEVICES\LED;..\DEVICES\MOTOR;..\DEVICES\TIMER;..\DEVICES\EXTI;..\DEVICES\PHOTOELECTRIC;..\USER;..\DEVICES\KEY;..\DEVICES\SERVO;..\DEVICES\HCSR-04;..\DEVICES\USART3;..\DEVICES\SEG;..\DEVICES\DS18B20;..\DEVICES\BEEP;..\DEVICES\BT-04;..\DEVICES\USART2</IncludePath>
+              <IncludePath>..\SYSTEM;..\DEVICES\LED;..\DEVICES\MOTOR;..\DEVICES\TIMER;..\DEVICES\EXTI;..\DEVICES\PHOTOELECTRIC;..\USER;..\DEVICES\KEY;..\DEVICES\SERVO;..\DEVICES\HCSR-04;..\DEVICES\USART3;..\DEVICES\SEG;..\DEVICES\DS18B20;..\DEVICES\BEEP;..\DEVICES\BT-04;..\DEVICES\USART2;..\DEVICES\DataScope_DP</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -448,6 +448,11 @@
               <FileName>bt04.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\DEVICES\BT-04\bt04.c</FilePath>
+            </File>
+            <File>
+              <FileName>DataScope_DP.C</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\DEVICES\DataScope_DP\DataScope_DP.C</FilePath>
             </File>
           </Files>
         </Group>

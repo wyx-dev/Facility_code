@@ -10,42 +10,45 @@
 #include "string.h"
 #include "bt04.h"
 #include "usart2.h"
+#include "DataScope_DP.h"
 
 /* 全局变量定义区 */
-int targetTemp = 280;
+int targetTemp = 400;
 int currentTemp = 0;
-int alarmTemp = 400;
-u8 set = 0, control_bluetooth = 0;
+int alarmTemp = 300;
+u8 set = 0, control_bluetooth = 0, flag_seeTemp = 0;
 unsigned int time_count = 0;
-int Kp = 72;
 struct PID {
-	unsigned int diff; // 设定目标与当前的差值 Desired Value
-	unsigned int proportion; // 比例常数 ProporTIonal Const
-	unsigned int integral; // 积分常数 Integral Const
-	unsigned int derivative; // 微分常数 DerivaTIve Const
-	unsigned int lastError; // Error［-1］
-	unsigned int prevError; // Error［-2］
-	unsigned int sumError; // Sums of Errors
+	float diff; // 设定目标与当前的差值 Desired Value
+	int proportion; // 比例常数 ProporTIonal Const
+	int integral; // 积分常数 Integral Const
+	int derivative; // 微分常数 DerivaTIve Const
+	int lastError; // Error［-1］
+	int prevError; // Error［-2］
+	float sumError; // Sums of Errors
 }spid;
 
 
 /* 函数定义区 */
 void setTargetTemp(void);
-void alarmCheck(int temp);
-u16 PID_calc(struct PID *pp);
+u8 alarmCheck(int temp);
+int PID_calc(struct PID *pp);
 void PIDInit(struct PID *pp);
 
 /*diy_wyx*/
 #define FLAG_PROTUES 		0
+#define BLUETOOTH			1
+#define DEBUG				0
 void (*delay)(u16);
 /*diy_wyx*/
 
-
 int main(void)
 {
-	u16 heatOut = 0;
+	int heatOut = 0, temp = 0;
 	u16 coldOut = 0;
 	u16 coldDiff = 0;
+	u8 i = 0, Send_Count = 0, normal = 0, n = 0, alarmFlag = 0;
+	
 	delay = delay_ms;
 	#if FLAG_PROTUES
 	delay = delay_diy;
@@ -53,88 +56,176 @@ int main(void)
 
 	Stm32_Clock_Init(9); 	//系统时钟设置
 	delay_init(72);	     	//延时初始化
-	uart_init(72, 9600);
+	uart_init(72, 128000);
 	ledInit();		  	 		//初始化与LED连接的硬件接口
 	segInit();						//初始化seg所用到的三个IO口
 	ds18b20Init();			  //初始化ds18b20所用到的1个IO口
 	keyInit();						//扫描按键IO初始化
 	extiInit();						//中断按键初始化
 	beepInit();						//初始化蜂鸣器
-	while(BT04_Init()) 		//初始化BT04模块  
-	{
-		//出错指示灯闪烁
-		LED0 = !LED0;
-		delay_ms(500);
-	}
+	#if BLUETOOTH
+		while(BT04_Init()) 		//初始化BT04模块  
+		{
+			//出错指示灯闪烁
+			LED0 = !LED0;
+			delay_ms(500);
+		}
+	#endif
 	tim3Init(50,7199);		//10khz 计数到50
 	tim1PwmInit(7199,0);	//10khz
 	PIDInit(&spid);
 	SEG_ON;
+	currentTemp = readTemp();
+		
+	spid.proportion = 30;//晚上35
+	spid.integral = 1;
+	spid.derivative = 500;
 
-	spid.proportion = 36;
-	spid.integral = 0;
-	spid.derivative = 0;
+#if DEBUG
+	while(1)
+	{
+		setPwm(7200,1);
+		delay(1000);
+		setPwm(6000,1);
+		delay(1000);
+	}
+#endif
 
 	while(1)
 	{
 //		PWM_CH4_VAL = 2;//30--7.26   10---7.19  5---7.14  3---7.05 1--0 2--0
 //		setPwm(7200,1);
 //		/* 加入PID的系统 */
-		if(set == 1)
+		if((time_count % 100) == 0)
 		{
-			BEEP_OFF;//关蜂鸣器
-			PWM_OFF;
-			setTargetTemp();
-			/* 蓝牙发送相关 */
-			u2_printf("A%.1f;%.1f\n",(float)targetTemp/10, (float)alarmTemp/10);
-			delay_ms(500);
-			u2_printf("BOFF");
-			/* ************ */
-		}
+			//判断是否进入设置模式
+			if(set == 1)
+			{
+				BEEP_OFF;//关蜂鸣器
+				PWM_OFF;
+				setTargetTemp();
+				/* 蓝牙发送相关 */
+				#if BLUETOOTH
+					u2_printf("A%.1f;%.1f\n",(float)targetTemp/10, (float)alarmTemp/10);
+					delay_ms(50);
+					u2_printf("BOFF");
+					delay_ms(20);
+				#endif
+				/* ************ */
+				spid.sumError = 0;//初始化累计误差
+				normal = 0;//初始化正常工作标志符
+				currentTemp = readTemp();//初始化正常工作温度值, 不初始化的话,滤波过不了
+			}
 
+			/* 蓝牙发送相关 */
+				#if BLUETOOTH
+					u2_printf("C%.1f",(float)currentTemp/10);
+				#endif
+			/* ************ */
+
+			//检测报警
+			alarmFlag = alarmCheck(currentTemp);
+		}
 		//读取温度 并处理温度
-		if((time_count % 3) == 0)
+		if((time_count % 10) == 0)
 		{
-//			LED0 = !LED0;
-			currentTemp = readTemp();
-			alarmCheck(currentTemp);
+			//在到达目标温度范围内,按下ADD键即正常工作
+			if(keyScan(0) == ADD)
+			{
+				normal = 1;
+				BEEP_OFF;
+			}
+
+			//读取温度,并滤波
+			n = 0;//此变量可防止温差突变导致卡死的现象.
+			while(n++ < 10)
+			{
+				temp = readTemp();
+				
+				//当差小于10(即1℃时),取温度
+				if(((temp - currentTemp) < 5) && ((temp - currentTemp) > -5))
+					break;
+//				currentTemp = temp;
+//				delay_ms(100);
+			}
+			currentTemp = temp;//取温度
+
+			//串口调试
+			
+			DataScope_Get_Channel_Data(currentTemp,1);
+			
+			Send_Count = DataScope_Data_Generate(3);
+			for( i = 0 ; i < Send_Count; i++) 
+			{
+				while((USART1->SR&0X40)==0);
+				USART1->DR = DataScope_OutPut_Buffer[i]; 
+			}
 
 			//如果已到目标范围,则停止加热
-			if((currentTemp > (targetTemp-5)) && ((currentTemp < (targetTemp+5))))
+			if((currentTemp > (targetTemp-5)) && (currentTemp < (targetTemp+5)))
 			{
-				if((time_count % 100) == 0)
+				heatOut = 0;
+				setPwm(heatOut,1);//关闭加热器
+				
+				//提示音
+				if((time_count % 50) == 0)
 				{
-					BEEP_ON;
-					delay(50);
-					BEEP_OFF;
-					delay(50);
+					/* 蓝牙发送相关 */
+					#if BLUETOOTH
+						u2_printf("2");
+					#endif
+					/* ************ */
+						
+					//非正常工作时,蜂鸣器响.
+					if(normal == 0)
+						BEEP = !BEEP;
+					else
+						BEEP_OFF;
 				}
+				
 			}
 
-			//降温
-			else if(currentTemp > targetTemp)
+			//未到目标温度,调整温度
+			else
 			{
-				setPwm(0,1);//关闭加热器
 				//降温
-				coldOut = coldDiff * 12; //300 ---3600
-				setPwm(coldOut ,0);
-			}
-			
-			//升温
-			else if(currentTemp < targetTemp)
-			{
-				setPwm(0,0);//关闭风扇
-				spid.diff = targetTemp - currentTemp;
-				if(spid.diff > 0)
-					heatOut = spid.diff * spid.proportion;
-
-				//PID数据处理
-				else
+				if(currentTemp > targetTemp)
 				{
-					heatOut = PID_calc(&spid);
-				}
+					//关闭加热器
+					heatOut = 0;
+					setPwm(heatOut,1);
 
-				setPwm(heatOut, 1);
+					//打开风扇
+					coldOut = coldDiff * 12; //300 ---3600 
+					setPwm(coldOut ,0);
+				}
+				//升温
+				else if((currentTemp < targetTemp) && (alarmFlag == 0))
+				{
+					BEEP_OFF;//关蜂鸣器
+					setPwm(0,0);//关闭风扇
+					spid.diff = targetTemp - currentTemp;//做差
+
+					//6℃之外之开启比例调节
+					if(spid.diff > 60)
+						heatOut = spid.diff * spid.proportion;
+
+					//PID数据处理
+					else
+					{
+						heatOut = PID_calc(&spid);
+					}
+
+					setPwm(heatOut, 1);
+				}
+				/* 蓝牙发送相关 */
+				if((time_count % 110) == 0)
+				{
+					#if BLUETOOTH
+						u2_printf("3");
+					#endif
+				}
+				/* ************ */
 			}
 			
 		}
@@ -144,32 +235,48 @@ int main(void)
 
 
 /*
-PID_calc函数功能：PID控制加热输出
-输入参数：struct PID *  PID结构体参数；
-输出：u16 加热输出PWM值；
+	PID_calc函数功能：PID控制加热输出
+	输入参数：struct PID *  PID结构体参数；
+	输出：u16 加热输出PWM值；
 */
-u16 PID_calc(struct PID *pp)
+int PID_calc(struct PID *pp)
 { 
-	u16 out = 0;
-	u16 dError = 0;
-
-	pp->sumError += pp->diff; //积分
-
-	dError = pp->lastError - pp->prevError; //误差逐渐减小，起到抑制效果，所以上次减上上次为负
+	int  outp = 0, outi = 0;
+	float out = 0, outd = 0;
+	int dError = 0;
+	static u8 lastErrorCount = 0;
 	
-	//更新上上次误差和上次误差
-	pp->prevError = pp->lastError;
-	pp->lastError = pp->diff;
+	pp->sumError += pp->diff * 0.045; //积分
 
-	out = (pp->proportion * pp->diff) + (pp->integral * pp->sumError) + (pp->derivative * dError);
+	if(pp->sumError > 1500)
+		pp->sumError = 1500;
+	if(pp->sumError < 0)
+		pp->sumError = 0;
+	
+	dError = pp->lastError - pp->prevError; //误差逐渐减小，起到抑制效果，所以上次减上上次为负
+
+	//更新上上次误差和上次误差
+	
+	if(lastErrorCount++ % 20== 0)//20 d调节没变化,看看200如何!!!!
+	{
+		pp->prevError = pp->lastError;
+		pp->lastError = pp->diff;
+	}
+	outp = pp->proportion * pp->diff;
+	outi = pp->integral * pp->sumError;
+	DataScope_Get_Channel_Data(outi, 3);
+	outd = pp->derivative * dError;
+	DataScope_Get_Channel_Data(outd, 2);
+	
+	out = outp + outi + outd;
 	return out;
 }
 
 
 /* 
-		设置目标/报警温度
-		双击set设置报警温度
-		单机set设置目标温度
+	设置目标/报警温度
+	双击set设置报警温度
+	单机set设置目标温度
 */
 void setTargetTemp(void)
 {
@@ -200,10 +307,12 @@ void setTargetTemp(void)
 		control_key = 0;
 		control_bluetooth = 0;
 		/* 蓝牙发送相关 */
-		if(flagSetType == 0)//零 报警值
-			u2_printf("BalarmTemp:%.1f",((float)*setTemp/10));
-		else				//否则 目标值
-			u2_printf("BtargetTemp:%.1f",((float)*setTemp/10));
+		#if BLUETOOTH
+			if(flagSetType == 0)//零 报警值
+				u2_printf("BalarmTemp:%.1f",((float)*setTemp/10));
+			else				//否则 目标值
+				u2_printf("BtargetTemp:%.1f",((float)*setTemp/10));
+		#endif
 		/* ************ */
 		//等待按键按下
 		while((control_key == 0) && (control_bluetooth == 0))
@@ -251,18 +360,35 @@ void setTargetTemp(void)
 输入参数：temp(要检测的温度值)；
 输出参数：无
 */
-void alarmCheck(int temp)
+u8 alarmCheck(int temp)
 {
 	static u8 alarmCount = 0;
 
 	//当超出目标温度一定时间才报警,相当于消抖
 	(temp > alarmTemp) ? alarmCount++ : (alarmCount = 0);
 
-	if(alarmCount == 5)
+	//报警
+	if(alarmCount > 2)
 	{
+		PWM_OFF;
+		#if BLUETOOTH
+		delay_ms(30);
+		u2_printf("1");
+		delay_ms(30);
+		#endif
 		BEEP_ON;
-		alarmCount = 0;
+		alarmCount = 2;
+		return 1;
 	}
+	else if(temp <= alarmTemp){
+		#if BLUETOOTH
+		delay_ms(30);
+		u2_printf("0");
+		delay_ms(30);
+		#endif
+		return 0;
+	}
+	return 0;
 }
 void PIDInit(struct PID *pp)
 {

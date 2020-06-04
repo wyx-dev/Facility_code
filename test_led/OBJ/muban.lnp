@@ -11,6 +11,7 @@
 "..\obj\beep.o"
 "..\obj\timer.o"
 "..\obj\bt04.o"
+"..\obj\datascope_dp.o"
 "..\obj\startup_stm32f10x_md.o"
 "..\obj\system_stm32f10x.o"
 --strict --scatter "..\OBJ\muban.sct"

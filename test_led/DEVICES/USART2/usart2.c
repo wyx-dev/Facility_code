@@ -30,6 +30,7 @@ u8 dataExec(char res, char* buf, int len)
 		if(res == 'Q')
 		{
 			buf_i = 0;
+			memset(buf, 0, sizeof(buf));
 			snprintf(buf,len,"%s",USART2_RX_BUF);
 			memset(USART2_RX_BUF, 0, sizeof(USART2_RX_BUF));
 			state = 0;
@@ -88,7 +89,12 @@ void USART2_IRQHandler(void)
 				control_bluetooth = ADD;
 			if(strcmp((const char*)buf,"SUB")==0)
 				control_bluetooth = SUB;
-			
+			if(strcmp((const char*)buf,"TMP")==0)
+			{
+				delay_ms(50);
+				u2_printf("A%.1f;%.1f\n",(float)targetTemp/10, (float)alarmTemp/10);
+				delay_ms(50);
+			}
 //			switch(buf)
 //			{
 //				case "SET"://set°´¼ü

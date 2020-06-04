@@ -1,6 +1,6 @@
 #ifndef __BEEP_H
-#define __BEEP_H	 
-#include "sys.h"	   
+#define __BEEP_H
+#include "sys.h"
 
 //LED¶Ë¿Ú¶¨Òå
 #define BEEP 			PAout(0)	// PA0
